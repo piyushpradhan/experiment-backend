@@ -2,26 +2,23 @@
   "name": "showoff",
   "version": "1.0.0",
   "main": "index.ts",
-  "type": "module",
   "license": "ISC",
   "scripts": {
+    "build": "rm -rf ./dist && tsc",
     "start": "pm2 start ecosystem.config.json --no-daemon",
     "start:build": "tsc --build && pm2 start ecosystem.config.json --no-daemon",
+    "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
     "compile": "tsc --build",
     "compile:watch": "tsc --build --watch",
-    "pre:dev": "cross-env NODE_ENV=development nodemon --experimental-modules --es-module-specifier-resolution=node dist/index.js",
-    "dev": "concurrently --kill-others \"npm run compile:watch\" \"npm run pre:dev\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.ts",
     "prettier:fix": "prettier --write **/*.ts"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "mediocre",
   "description": "",
   "dependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^20.14.8",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
@@ -30,13 +27,19 @@
     "http-status": "^1.7.4",
     "moment": "^2.30.1",
     "morgan": "^1.10.0",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3",
+    "socket.io": "^4.7.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
+    "@types/pg": "^8.11.6",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "concurrently": "^8.2.2",
@@ -49,11 +52,11 @@
     "nodemon": "^3.1.4",
     "prettier": "^3.3.2",
     "ts-jest": "^29.1.5",
+    "tsc-watch": "^6.2.0",
     "typescript": "^5.5.2"
   },
   "lint-staged": {
     "**/*": "npm run format",
     "**/*.{js,ts}": "npm run lint:fix"
-  },
-  "author": "mediocre"
+  }
 }
