@@ -5,11 +5,10 @@ module.exports = {
   },
   restoreMocks: true,
   coveragePathIgnorePatterns: ["node_modules", "dist/config", "dist/app.js"],
-  converageReports: ["text", "lcov", "clover", "html"],
-  globals: {
-    "ts-jest": {
+  coverageReporters: ["text", "lcov", "clover", "html"],
+  transform: { 
+    '\\.ts$': ['ts-jest', {
       diagnostics: false
-    },
-  },
-  transform: { '\\.ts$': ['ts-jest'] }
+    }]
+  }
 };
