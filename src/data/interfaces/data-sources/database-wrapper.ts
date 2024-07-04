@@ -1,3 +1,3 @@
 export interface SQLDatabaseWrapper {
-  query(queryString: string): Promise<{ rows: any[] }>
+  query(queryString: string, values?: unknown[]): Promise<{ rows: any[] }>
 }
