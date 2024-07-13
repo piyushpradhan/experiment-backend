@@ -1,9 +1,9 @@
 import { LoginResponseModel } from "@/domain/entities/auth";
 import { SQLDatabaseWrapper } from "src/data/interfaces/data-sources/database-wrapper";
-import { GeneralDataSource } from "src/data/interfaces/data-sources/general-data-source";
+import { IGeneralDataSource } from "src/data/interfaces/data-sources/general-data-source";
 import { GeneralResponseModel, GeneralRequestModel } from "src/domain/entities/general";
 
-export class PGDataSource implements GeneralDataSource {
+export class PGDataSource implements IGeneralDataSource {
   private db: SQLDatabaseWrapper;
   constructor(db: SQLDatabaseWrapper) {
     this.db = db;
