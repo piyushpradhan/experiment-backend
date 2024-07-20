@@ -1,5 +1,5 @@
 import { SQLDatabaseWrapper } from "@/data/interfaces/data-sources/database-wrapper";
-import { Sequelize } from "sequelize";
+import { QueryOptions, Sequelize } from "sequelize";
 
 export class SequelizeDatabaseWrapper implements SQLDatabaseWrapper {
   private sequelize: Sequelize;
@@ -8,15 +8,13 @@ export class SequelizeDatabaseWrapper implements SQLDatabaseWrapper {
     this.sequelize = sequelize;
   }
 
-  async query(queryString: string, values?: unknown[]): Promise<{ rows: any[]; }> {
+  async query(sql: string, options?: QueryOptions): Promise<{ rows: any[]; }> {
     let result;
-    if (values) {
-      result = await this.sequelize.query({
-        query: queryString,
-        values
-      });
+    if (options) {
+      result = await this.sequelize.query(sql, options);
+      return { rows: result };
     }
-    result = await this.sequelize.query(queryString);
+    result = await this.sequelize.query(sql);
     return { rows: result };
   }
 }

@@ -17,7 +17,9 @@ import { SocketServer } from "./infrastructure/socket/socketServer";
   const httpServer = createServer(server);
   const dataSource = await connectPSQL();
 
-  const socketServer = new SocketServer(httpServer);
+  const messageRepository = new MessageRepository(dataSource);
+
+  const socketServer = new SocketServer(httpServer, messageRepository);
 
   const generalMiddleware = GeneralRouter(
     new GetAllValues(new GeneralRepositoryImpl(dataSource)),
@@ -29,7 +31,7 @@ import { SocketServer } from "./infrastructure/socket/socketServer";
   );
 
   const messageMiddleware = MessageRouter(
-    new MessageUseCaseImpl(new MessageRepository(dataSource), socketServer)
+    new MessageUseCaseImpl(messageRepository, socketServer)
   )
 
   server.use("/general", generalMiddleware);

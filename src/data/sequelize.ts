@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const sequelize = new Sequelize(process.env.DB_URL || 'postgresql://localhost:5432');
+export const sequelize: Sequelize = new Sequelize(process.env.DB_URL || 'postgresql://localhost:5432');
 
 export async function connectPSQL() {
   const sequelizeDbWrapper = new SequelizeDatabaseWrapper(sequelize);

@@ -1,6 +1,15 @@
-import { GeneralRequestModel, GeneralResponseModel } from "src/domain/entities/general";
+import { LoginResponseModel } from "@/domain/entities/auth";
+import { Message as MessageRequest } from "@/domain/entities/message";
+import { GeneralResponseModel } from "@/domain/entities/general";
+import Message from "@/data/models/message";
 
 export interface IGeneralDataSource {
   getAll(): Promise<GeneralResponseModel[] | null>;
-  create(general: GeneralRequestModel): Promise<void>;
+  createOrUpdateUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null>;
+  updateUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null>;
+  getUserById(uid: string): Promise<LoginResponseModel | null>;
+  createUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null>;
+
+  sendMessage(message: MessageRequest): Promise<void>;
+  getChannelMessages(channelId: string): Promise<Message[] | null>;
 }
