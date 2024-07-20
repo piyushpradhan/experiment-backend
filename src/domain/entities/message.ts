@@ -2,6 +2,10 @@ export interface Message {
   id: string;
   channelId: string;
   sender: string;
-  content: string;
+  contents: string;
   timestamp: Date
+}
+
+export interface MessagesRequest {
+  channelId: string
 }

@@ -9,6 +9,6 @@ export class CreateValue implements CreateValueUseCase {
   }
 
   async execute(general: GeneralRequestModel): Promise<void> {
-    await this.generalRepository.createValue(general);
+    //await this.generalRepository.createValue(general);
   }
 }

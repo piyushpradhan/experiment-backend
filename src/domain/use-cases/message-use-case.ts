@@ -14,7 +14,7 @@ export class MessageUseCaseImpl implements IMessageUseCase {
   async sendMessage(message: Omit<Message, "id">): Promise<void> {
     try {
       // Emit socket event
-      this.socketServer.emitMessage(message.channelId, message.sender, message.content);
+      this.socketServer.emitMessage(message.channelId, message.sender, message.contents);
       // Update the database
       this.messageRepository.send(message);
     } catch (err) {

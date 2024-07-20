@@ -1,3 +1,5 @@
+import * as sequelize from "sequelize";
+
 export interface SQLDatabaseWrapper {
-  query(queryString: string, values?: unknown[]): Promise<{ rows: any[] }>
+  query(sql: string, options?: sequelize.QueryOptions): Promise<{ rows: any[] }>;
 }
