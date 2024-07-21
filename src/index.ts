@@ -12,14 +12,16 @@ import MessageRouter from "./presentation/routers/message-router";
 import { MessageUseCaseImpl } from "./domain/use-cases/message-use-case";
 import { MessageRepository } from "./domain/repositories/message-repository";
 import { SocketServer } from "./infrastructure/socket/socketServer";
+import { ChannelRepository } from "./domain/repositories/channel-repository";
 
 (async () => {
   const httpServer = createServer(server);
   const dataSource = await connectPSQL();
 
   const messageRepository = new MessageRepository(dataSource);
+  const channelRepository = new ChannelRepository(dataSource);
 
-  const socketServer = new SocketServer(httpServer, messageRepository);
+  const socketServer = new SocketServer(httpServer, messageRepository, channelRepository);
 
   const generalMiddleware = GeneralRouter(
     new GetAllValues(new GeneralRepositoryImpl(dataSource)),

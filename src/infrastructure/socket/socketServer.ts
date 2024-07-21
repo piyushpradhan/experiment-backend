@@ -1,30 +1,42 @@
+import Message from "@/data/models/message";
+import { Channel } from "@/domain/entities/channel";
 import { MessagesRequest } from "@/domain/entities/message";
+import { ChannelRepository } from "@/domain/repositories/channel-repository";
 import { MessageRepository } from "@/domain/repositories/message-repository";
-import { DeleteSocketRequest, SocketMessageData } from "@/infrastructure/socket/types";
+import { DeleteSocketRequest, SocketMessageData, CreateChannelRequest } from "@/infrastructure/socket/types";
 import { Server } from "socket.io";
 
 export class SocketServer {
   private io: Server;
-  private repository: MessageRepository;
+  private messageRepository: MessageRepository;
+  private channelRepository: ChannelRepository;
 
-  constructor(server: any, repository: MessageRepository) {
+  constructor(server: any, repository: MessageRepository, channelRepository: ChannelRepository) {
     this.io = new Server(server, {
       cors: {
         origin: "*"
       }
     });
-    this.repository = repository;
+    this.messageRepository = repository;
+    this.channelRepository = channelRepository;
 
     this.initialize();
   }
 
   public initialize(): void {
     this.io.on("connection", (socket) => {
-      socket.on("join", async (channelId: string) => {
-        socket.join(channelId);
+      socket.on("join", async () => {
+        const channels: Channel[] | null = await this.emitChannels();
+        const latestChannel: Channel = (channels || [])[(channels || []).length - 1];
 
-        await this.emitChannelMessages(channelId);
+        socket.join(latestChannel.id);
+        await this.emitChannelMessages(latestChannel.id);
       });
+
+      socket.on("joinChannel", async (channelId) => {
+        const messages: Message[] | null = await this.getAllChannelMessages({ channelId });
+        this.io.emit("channelMessages", messages);
+      })
 
       socket.on("requestChannelMessages", async (channelId: string) => {
         await this.emitChannelMessages(channelId);
@@ -39,8 +51,18 @@ export class SocketServer {
       socket.on("deleteMessage", async (data: DeleteSocketRequest) => {
         await this.deleteMessage(data);
         const messages = await this.getAllChannelMessages({ channelId: data.channelId });
-        this.io.emit("channelMessages", messages);
-      })
+        this.io.to(data.channelId).emit("channelMessages", messages);
+      });
+
+      socket.on("getChannels", async () => {
+        await this.emitChannels();
+      });
+
+      socket.on("createChannel", async (data: CreateChannelRequest) => {
+        await this.createChannel(data);
+        const channels = await this.getAllChannels();
+        this.io.emit("channels", channels);
+      });
 
       socket.on("disconnect", () => {
         console.log("Client disconnect");
@@ -50,24 +72,38 @@ export class SocketServer {
 
   private async emitChannelMessages(channelId: string) {
     const messages = await this.getAllChannelMessages({ channelId });
-    this.io.emit("channelMessages", messages);
+    this.io.to(channelId).emit("channelMessages", messages);
+  }
+
+  private async emitChannels(): Promise<Channel[] | null> {
+    const channels = await this.getAllChannels();
+    this.io.emit("channels", channels);
+    return channels;
   }
 
   private async getAllChannelMessages(data: MessagesRequest) {
-    const messages = await this.repository.getChannelMessages(data.channelId);
+    const messages = await this.messageRepository.getChannelMessages(data.channelId);
     return messages;
   }
 
   private async sendMessage(data: SocketMessageData) {
     const timestamp = new Date();
-    await this.repository.send({
+    await this.messageRepository.send({
       ...data,
       timestamp
     });
   }
 
   private async deleteMessage(data: DeleteSocketRequest) {
-    await this.repository.deleteMessage(data.channelId, data.sender);
+    await this.messageRepository.deleteMessage(data.channelId, data.sender);
+  }
+
+  private async getAllChannels() {
+    return await this.channelRepository.getAllChannels();
+  }
+
+  private async createChannel(data: CreateChannelRequest) {
+    return await this.channelRepository.createChannel(data.name);
   }
 
   public emitMessage(channelId: string, sender: string, content: string): void {

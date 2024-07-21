@@ -1,3 +1,4 @@
+import { Channel } from "@/domain/entities/channel";
 import Message from "../../models/message";
 import { LoginResponseModel } from "@/domain/entities/auth";
 import { Message as MessageRequest } from "@/domain/entities/message";
@@ -41,7 +42,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async updateUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null> {
     try {
-      const query = 'UPDATE * users SET name = :name, email = :email WHERE uid = :uid RETURNING *';
+      const query = 'UPDATE * users SET name = :name, email = :email WHERE uid = :uid RETURNING *;';
       const result = await this.db.query(query, {
         replacements: {
           uid,
@@ -58,7 +59,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async getUserById(uid: string): Promise<LoginResponseModel | null> {
     try {
-      const query = 'SELECT * FROM users WHERE uid = ?';
+      const query = 'SELECT * FROM users WHERE uid = ?;';
       const result = await this.db.query(query, {
         replacements: { uid }
       });
@@ -71,7 +72,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async createUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null> {
     try {
-      const query = 'INSERT INTO users (uid, name, email) VALUES (:uid, :name, :email) RETURNING *';
+      const query = 'INSERT INTO users (uid, name, email) VALUES (:uid, :name, :email) RETURNING *;';
       const result = await this.db.query(query, {
         replacements: {
           uid,
@@ -88,7 +89,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async sendMessage(message: Omit<MessageRequest, "id">): Promise<void> {
     try {
-      const query = 'INSERT INTO messages (sender, channelId, contents) VALUES (:sender, :channelId, :contents)';
+      const query = 'INSERT INTO messages (sender, channelId, contents) VALUES (:sender, :channelId, :contents);';
       await this.db.query(query, {
         replacements: {
           ...message
@@ -101,7 +102,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async deleteMessage(channelId: string, sender: string): Promise<void> {
     try {
-      const query = 'DELETE FROM messages WHERE sender = :sender AND channelId = :channelId';
+      const query = 'DELETE FROM messages WHERE sender = :sender AND channelId = :channelId;';
       await this.db.query(query, {
         replacements: {
           sender,
@@ -115,13 +116,39 @@ export class PGDataSource implements IGeneralDataSource {
 
   async getChannelMessages(channelId: string): Promise<Message[] | null> {
     try {
-      // Reverse order and limit to 30 messages
-      const query = 'SELECT * from messages WHERE channelId = :channelId ORDER BY timestamp ASC';
+      // TODO: Limit to 30 messages
+      const query = 'SELECT * from messages WHERE channelId = :channelId ORDER BY timestamp ASC;';
       const result = await this.db.query(query, {
         replacements: { channelId }
       });
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
+      return null;
+    }
+  }
+
+  async getAllChannels(): Promise<Channel[] | null> {
+    try {
+      const query = 'SELECT * FROM channels;';
+      const result = await this.db.query(query);
+      return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async createChannel(name: string): Promise<Channel[] | null> {
+    try {
+      const query = 'INSERT INTO channels (name) VALUES (:name) RETURNING *;';
+      const result = await this.db.query(query, {
+        replacements: {
+          name
+        }
+      });
+      return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (err) {
+      console.error(err);
       return null;
     }
   }

@@ -1,5 +1,6 @@
-import { Channel } from "diagnostics_channel";
+import { Channel } from "@/domain/entities/channel";
 
 export interface IChannelRepository {
-  create(channel: Channel): Promise<void>;
+  createChannel(name: string): Promise<Channel[] | null>;
+  getAllChannels(): Promise<Channel[] | null>;
 }
