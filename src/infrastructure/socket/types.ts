@@ -8,3 +8,7 @@ export type DeleteSocketRequest = {
   channelId: string;
   sender: string;
 }
+
+export type CreateChannelRequest = {
+  name: string;
+}
