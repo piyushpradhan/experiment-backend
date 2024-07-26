@@ -13,7 +13,6 @@ export class MessageRepository implements IMessageRepository {
     await this.pgDataSource.sendMessage(message);
   }
 
-
   async getChannelMessages(channelId: string): Promise<Message[] | null> {
     return this.pgDataSource.getChannelMessages(channelId);
   }
