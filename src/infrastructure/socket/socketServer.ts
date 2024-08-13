@@ -1,10 +1,10 @@
+import { Server } from "socket.io";
 import Message from "@/data/models/message";
 import { Channel } from "@/domain/entities/channel";
 import { MessagesRequest } from "@/domain/entities/message";
 import { ChannelRepository } from "@/domain/repositories/channel-repository";
 import { MessageRepository } from "@/domain/repositories/message-repository";
-import { DeleteSocketRequest, SocketMessageData, CreateChannelRequest } from "@/infrastructure/socket/types";
-import { Server } from "socket.io";
+import type { DeleteSocketRequest, SocketMessageData, CreateChannelRequest, DeleteChannelRequest } from "@/infrastructure/socket/types";
 
 export class SocketServer {
   private io: Server;
@@ -63,6 +63,12 @@ export class SocketServer {
         const channels = await this.getAllChannels();
         this.io.emit("channels", channels);
       });
+
+      socket.on("deleteChannel", async (data: DeleteChannelRequest) => {
+        await this.channelRepository.deleteChannel(data.channelId);
+        const channels = await this.getAllChannels();
+        this.io.emit("channels", channels);
+      })
 
       socket.on("disconnect", () => {
         console.log("Client disconnect");

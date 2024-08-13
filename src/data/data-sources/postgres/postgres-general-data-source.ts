@@ -129,7 +129,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async getAllChannels(): Promise<Channel[] | null> {
     try {
-      const query = 'SELECT * FROM channels;';
+      const query = 'SELECT * FROM channels ORDER BY updatedat DESC;';
       const result = await this.db.query(query);
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
@@ -150,6 +150,19 @@ export class PGDataSource implements IGeneralDataSource {
     } catch (err) {
       console.error(err);
       return null;
+    }
+  }
+
+  async deleteChannel(channelId: string): Promise<void> {
+    try {
+      const query = 'DELETE FROM channels where channelId = :channelId';
+      await this.db.query(query, {
+        replacements: {
+          channelId
+        }
+      });
+    } catch (err) {
+      console.error(err);
     }
   }
 }
