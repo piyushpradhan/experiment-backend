@@ -12,6 +12,10 @@ export class ChannelRepository implements IChannelRepository {
     return await this.pgDataSource.createChannel(name);
   }
 
+  async deleteChannel(channelId: string): Promise<void> {
+    return await this.pgDataSource.deleteChannel(channelId);
+  }
+
   async getAllChannels(): Promise<Channel[] | null> {
     return await this.pgDataSource.getAllChannels();
   }

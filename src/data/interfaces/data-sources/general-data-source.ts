@@ -16,4 +16,5 @@ export interface IGeneralDataSource {
 
   getAllChannels(): Promise<Channel[] | null>;
   createChannel(name: string): Promise<Channel[] | null>;
+  deleteChannel(channelId: string): Promise<void>;
 }

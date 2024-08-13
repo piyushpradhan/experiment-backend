@@ -12,3 +12,7 @@ export type DeleteSocketRequest = {
 export type CreateChannelRequest = {
   name: string;
 }
+
+export type DeleteChannelRequest = {
+  channelId: string;
+}
