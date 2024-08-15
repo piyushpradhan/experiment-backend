@@ -35,7 +35,7 @@ export class SocketServer {
 
       socket.on("joinChannel", async (channelId) => {
         const messages: Message[] | null = await this.getAllChannelMessages({ channelId });
-        this.io.emit("channelMessages", messages);
+        this.io.emit("channelMessages", { messages, channelId });
       })
 
       socket.on("requestChannelMessages", async (channelId: string) => {
@@ -45,13 +45,13 @@ export class SocketServer {
       socket.on("message", async (data: SocketMessageData) => {
         await this.sendMessage(data);
         const messages = await this.getAllChannelMessages({ channelId: data.channelId });
-        this.io.emit("channelMessages", messages);
+        this.io.emit("channelMessages", { messages, channelId: data.channelId });
       });
 
       socket.on("deleteMessage", async (data: DeleteSocketRequest) => {
         await this.deleteMessage(data);
         const messages = await this.getAllChannelMessages({ channelId: data.channelId });
-        this.io.to(data.channelId).emit("channelMessages", messages);
+        this.io.to(data.channelId).emit("channelMessages", { messages, channelId: data.channelId });
       });
 
       socket.on("getChannels", async () => {
@@ -78,7 +78,7 @@ export class SocketServer {
 
   private async emitChannelMessages(channelId: string) {
     const messages = await this.getAllChannelMessages({ channelId });
-    this.io.to(channelId).emit("channelMessages", messages);
+    this.io.to(channelId).emit("channelMessages", { messages, channelId });
   }
 
   private async emitChannels(): Promise<Channel[] | null> {
