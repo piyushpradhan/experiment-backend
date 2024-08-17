@@ -155,7 +155,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async deleteChannel(channelId: string): Promise<void> {
     try {
-      const query = 'DELETE FROM channels where channelId = :channelId';
+      const query = 'DELETE FROM channels where id = :channelId';
       await this.db.query(query, {
         replacements: {
           channelId
