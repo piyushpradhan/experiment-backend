@@ -13,12 +13,16 @@ import { MessageUseCaseImpl } from "./domain/use-cases/message-use-case";
 import { MessageRepository } from "./domain/repositories/message-repository";
 import { SocketServer } from "./infrastructure/socket/socketServer";
 import { ChannelRepository } from "./domain/repositories/channel-repository";
+import { RedisDatabaseWrapperImpl } from "./data/data-sources/redis/redis-db-wrapper";
 
 (async () => {
   const httpServer = createServer(server);
-  const dataSource = await connectPSQL();
 
-  const messageRepository = new MessageRepository(dataSource);
+  // Initialize data sources - Postgres and Redis
+  const dataSource = await connectPSQL();
+  const redis = new RedisDatabaseWrapperImpl();
+
+  const messageRepository = new MessageRepository(dataSource, redis);
   const channelRepository = new ChannelRepository(dataSource);
 
   const socketServer = new SocketServer(httpServer, messageRepository, channelRepository);
