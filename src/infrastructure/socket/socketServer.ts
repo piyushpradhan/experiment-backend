@@ -94,6 +94,7 @@ export class SocketServer {
 
   private async sendMessage(data: SocketMessageData) {
     const timestamp = new Date();
+    console.log("socket", { data });
     await this.messageRepository.send({
       ...data,
       timestamp
