@@ -89,7 +89,8 @@ export class PGDataSource implements IGeneralDataSource {
 
   async sendMessage(message: Omit<MessageRequest, "id">): Promise<void> {
     try {
-      const query = 'INSERT INTO messages (sender, channelId, contents) VALUES (:sender, :channelId, :contents);';
+      console.log("query", { message });
+      const query = 'INSERT INTO messages (sender, channelId, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
       await this.db.query(query, {
         replacements: {
           ...message

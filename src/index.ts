@@ -23,7 +23,7 @@ import { RedisDatabaseWrapperImpl } from "./data/data-sources/redis/redis-db-wra
   const redis = new RedisDatabaseWrapperImpl();
 
   const messageRepository = new MessageRepository(dataSource, redis);
-  const channelRepository = new ChannelRepository(dataSource);
+  const channelRepository = new ChannelRepository(dataSource, redis);
 
   const socketServer = new SocketServer(httpServer, messageRepository, channelRepository);
 

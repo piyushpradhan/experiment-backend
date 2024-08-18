@@ -2,6 +2,7 @@ export type SocketMessageData = {
   channelId: string;
   sender: string;
   contents: string;
+  taggedMessage?: string;
 }
 
 export type DeleteSocketRequest = {

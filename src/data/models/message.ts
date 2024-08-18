@@ -28,10 +28,30 @@ Message.init({
     type: DataTypes.TIME,
     allowNull: false,
     defaultValue: new Date()
+  },
+  taggedMessage: {
+    type: DataTypes.UUID,
+    defaultValue: null,
+    allowNull: true,
+    references: {
+      model: 'Messages',
+      key: 'id'
+    },
+    onDelete: 'SET NULL'
   }
 }, {
   sequelize,
   modelName: 'Message'
+});
+
+Message.hasMany(Message, {
+  as: 'Replies',
+  foreignKey: 'taggedMessage'
+});
+
+Message.belongsTo(Message, {
+  as: 'RepliedMessage',
+  foreignKey: 'taggedMessage'
 });
 
 export default Message;
