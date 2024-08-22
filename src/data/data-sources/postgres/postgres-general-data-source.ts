@@ -90,7 +90,7 @@ export class PGDataSource implements IGeneralDataSource {
   async sendMessage(message: Omit<MessageRequest, "id">): Promise<void> {
     try {
       console.log("query", { message });
-      const query = 'INSERT INTO messages (sender, channelId, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
+      const query = 'INSERT INTO messages (sender, channel_id, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
       await this.db.query(query, {
         replacements: {
           ...message
@@ -103,7 +103,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async deleteMessage(channelId: string, sender: string): Promise<void> {
     try {
-      const query = 'DELETE FROM messages WHERE sender = :sender AND channelId = :channelId;';
+      const query = 'DELETE FROM messages WHERE sender = :sender AND channel_id = :channelId;';
       await this.db.query(query, {
         replacements: {
           sender,
@@ -118,7 +118,7 @@ export class PGDataSource implements IGeneralDataSource {
   async getChannelMessages(channelId: string): Promise<Message[] | null> {
     try {
       // TODO: Limit to 30 messages
-      const query = 'SELECT * from messages WHERE channelId = :channelId ORDER BY timestamp ASC;';
+      const query = 'SELECT * from messages WHERE channel_id = :channelId ORDER BY timestamp ASC;';
       const result = await this.db.query(query, {
         replacements: { channelId }
       });
@@ -130,7 +130,7 @@ export class PGDataSource implements IGeneralDataSource {
 
   async getAllChannels(): Promise<Channel[] | null> {
     try {
-      const query = 'SELECT * FROM channels ORDER BY updatedat DESC;';
+      const query = 'SELECT * FROM channels ORDER BY updated_at DESC;';
       const result = await this.db.query(query);
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
