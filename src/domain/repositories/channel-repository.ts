@@ -45,7 +45,9 @@ export class ChannelRepository implements IChannelRepository {
     // Cache the channels in redis
     if (channels) {
       // Cache for 5 minutes
-      await this.redisDataSource.set(cacheKey, JSON.stringify(channels), { EX: 300 });
+      for (const channel of channels) {
+        await this.redisDataSource.set(cacheKey, JSON.stringify(channels), { EX: 300 });
+      }
     }
 
     return channels;

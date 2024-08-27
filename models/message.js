@@ -1,7 +1,5 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     /**
@@ -13,16 +11,19 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Message.init({
-    id: DataTypes.UUID,
-    sender: DataTypes.STRING,
-    contents: DataTypes.STRING,
-    channelid: DataTypes.UUID,
-    timestamp: DataTypes.DATE,
-    tagged_message: DataTypes.UUID
-  }, {
-    sequelize,
-    modelName: 'message',
-  });
+  Message.init(
+    {
+      id: DataTypes.UUID,
+      sender: DataTypes.STRING,
+      contents: DataTypes.STRING,
+      channel_id: DataTypes.UUID,
+      timestamp: DataTypes.DATE,
+      tagged_message: DataTypes.UUID,
+    },
+    {
+      sequelize,
+      modelName: 'message',
+    },
+  );
   return Message;
 };
