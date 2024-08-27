@@ -20,5 +20,15 @@ export default function AuthRouter(
     res.send(authResponse);
   });
 
+  router.get("/users", async (_req: Request, res: Response) => {
+    const allUsers = await authUseCase.getAllUsers();
+    res.send(allUsers);
+  })
+
+  router.post("/create", async (req: Request, res: Response) => {
+    const createdUser = await authUseCase.createUser(req.body.name, req.body.email);
+    res.send(createdUser);
+  });
+
   return router;
 }

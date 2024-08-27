@@ -1,10 +1,9 @@
 import { Channel } from "@/domain/entities/channel";
 import Message from "../../models/message";
-import { LoginResponseModel } from "@/domain/entities/auth";
+import { LoginResponseModel, User } from "@/domain/entities/auth";
 import { Message as MessageRequest } from "@/domain/entities/message";
 import { SQLDatabaseWrapper } from "src/data/interfaces/data-sources/database-wrapper";
 import { IGeneralDataSource } from "src/data/interfaces/data-sources/general-data-source";
-import { GeneralResponseModel } from "src/domain/entities/general";
 
 export class PGDataSource implements IGeneralDataSource {
   private db: SQLDatabaseWrapper;
@@ -12,26 +11,26 @@ export class PGDataSource implements IGeneralDataSource {
     this.db = db;
   }
 
-  async getAll(): Promise<GeneralResponseModel[] | null> {
+  async getAllUsers(): Promise<User[] | null> {
     try {
-      const query = "SELECT * from users;";
+      const query = "SELECT * from users WHERE uid <> '00000000-0000-0000-0000-000000000000'";
       const result = await this.db.query(query);
-      return result.rows.length > 0 ? result.rows : [];
+      return result.rows.length > 0 ? result.rows[0] : [];
     } catch (err) {
       console.error(err);
       return null;
     }
   }
 
-  async createOrUpdateUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null> {
+  async createOrUpdateUser(name: string, email: string): Promise<User | null> {
     try {
-      const existingUser = await this.getUserById(uid);
+      const existingUser = await this.getUserByEmail(email);
 
       if (existingUser) {
-        const updatedUser = await this.updateUser(uid, name, email);
+        const updatedUser = await this.updateUser(existingUser.uid, name, email);
         return updatedUser;
       } else {
-        const newUser = await this.createUser(uid, name, email);
+        const newUser = await this.createUser(name, email);
         return newUser;
       }
     } catch (err) {
@@ -40,9 +39,9 @@ export class PGDataSource implements IGeneralDataSource {
     }
   }
 
-  async updateUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null> {
+  async updateUser(uid: string, name: string, email: string): Promise<User | null> {
     try {
-      const query = 'UPDATE * users SET name = :name, email = :email WHERE uid = :uid RETURNING *;';
+      const query = 'UPDATE users SET name = :name, email = :email WHERE uid = :uid RETURNING *;';
       const result = await this.db.query(query, {
         replacements: {
           uid,
@@ -50,9 +49,25 @@ export class PGDataSource implements IGeneralDataSource {
           email
         }
       });
-      return result.rows.length > 0 ? result.rows[0] : null;
+      return result.rows.length > 0 ? result.rows[0][0] : null;
     } catch (err) {
       console.error(err);
+      return null;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    try {
+      const query = 'SELECT * FROM users where email = :email;';
+      const result = await this.db.query(query, {
+        replacements: {
+          email
+        }
+      });
+
+      return result.rows.length > 0 ? result.rows[0][0] : null;
+    } catch (error) {
+      console.error(error);
       return null;
     }
   }
@@ -70,17 +85,16 @@ export class PGDataSource implements IGeneralDataSource {
     }
   }
 
-  async createUser(uid: string, name: string, email: string): Promise<LoginResponseModel | null> {
+  async createUser(name: string, email: string): Promise<User | null> {
     try {
-      const query = 'INSERT INTO users (uid, name, email) VALUES (:uid, :name, :email) RETURNING *;';
+      const query = 'INSERT INTO users (name, email) VALUES (:name, :email) RETURNING *';
       const result = await this.db.query(query, {
         replacements: {
-          uid,
           name,
           email
         }
       });
-      return result.rows.length > 0 ? result.rows[0] : null;
+      return result.rows.length > 0 ? result.rows[0][0] : null;
     } catch (err) {
       console.error(err);
       return null;
@@ -89,7 +103,6 @@ export class PGDataSource implements IGeneralDataSource {
 
   async sendMessage(message: Omit<MessageRequest, "id">): Promise<void> {
     try {
-      console.log("query", { message });
       const query = 'INSERT INTO messages (sender, channel_id, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
       await this.db.query(query, {
         replacements: {

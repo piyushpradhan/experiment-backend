@@ -27,7 +27,7 @@ export class SocketServer {
     this.io.on("connection", (socket) => {
       socket.on("join", async () => {
         const channels: Channel[] | null = await this.emitChannels();
-        const latestChannel: Channel = (channels || [])[(channels || []).length - 1];
+        const latestChannel: Channel = (channels || [])[0];
 
         socket.join(latestChannel.id);
         await this.emitChannelMessages(latestChannel.id);
