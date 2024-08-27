@@ -18,6 +18,8 @@ export class MessageRepository implements IMessageRepository {
 
     // Invalidate the Redis cache for the relevant channel's messages
     const cacheKey = `channel:messages:${message.channelId}`;
+    const channelListKey = "channels:list";
+    await this.redisDataSource.del(channelListKey);
     await this.redisDataSource.del(cacheKey);
   }
 
@@ -39,10 +41,6 @@ export class MessageRepository implements IMessageRepository {
     }
 
     return messages;
-  }
-
-  getByChannelId(channelId: string): Promise<Message[]> {
-    throw new Error("Method not implemented.");
   }
 
   async deleteMessage(channelId: string, sender: string): Promise<void> {
