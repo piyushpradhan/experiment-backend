@@ -40,7 +40,73 @@ export class RedisDatabaseWrapperImpl implements RedisDatabaseWrapper {
       console.error(`Redis DEL error: ${err}`);
     }
   }
+  async keys(pattern: string): Promise<Array<string> | null> {
+    try {
+      const keys = await this.client.keys(pattern);
+      return keys;
+    } catch (err) {
+      console.error(`Redis KEYS error: ${err}`);
+      return null;
+    }
+  }
+  async hGetAll(key: string): Promise<{ [key: string]: string } | null> {
+    try {
+      const values = await this.client.hGetAll(key);
+      return values;
+    } catch (err) {
+      console.error(`Redis HGETALL error: ${err}`);
+      return null;
+    }
+  }
+  async hKeys(cacheKey: string): Promise<Array<string> | null> {
+    try {
+      const keys = await this.client.hKeys(cacheKey);
+      return keys;
+    } catch (err) {
+      console.error(`Redis HKEYS error: ${err}`);
+      return null;
+    }
+  }
+  async hGet(cacheKey: string, field: string): Promise<string | undefined | null> {
+    try {
+      const hashValue = await this.client.hGet(cacheKey, field);
+      return hashValue;
+    } catch (err) {
+      console.error(`Redis HGET error: ${err}`);
+      return null;
+    }
+  }
+  async hSet(hashKey: string, field: string, value: any): Promise<number | null> {
+    try {
+      return await this.client.hSet(hashKey, field, value);
+    } catch (err) {
+      console.error(`Redis HSET error: ${err}`);
+      return null;
+    }
+  }
+  async hDel(hashKey: string, field: string): Promise<void> {
+    try {
+      await this.client.hDel(hashKey, field);
+    } catch (err) {
+      console.error(`Redis HDEL error: ${err}`);
+    }
+  }
+  async multi(): Promise<any> {
+    try {
+      return this.client.multi();
+    } catch (err) {
+      console.error(`Redis MULTI error: ${err}`);
+      return null;
+    }
+  }
   async quit(): Promise<void> {
     await this.client.quit();
+  }
+  async expire(cacheKey: string, time: number): Promise<void> {
+    try {
+      await this.client.expire(cacheKey, time);
+    } catch (err) {
+      console.error(`Redis expire error: ${err}`);
+    }
   }
 }
