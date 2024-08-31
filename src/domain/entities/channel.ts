@@ -1,7 +1,9 @@
-import { Message } from "./message";
+import { Message } from './message';
 
 export interface Channel {
   id: string;
   name: string;
-  messages: Message[]
+  last_message: string;
+  updated_at: Date;
+  created_at: Date;
 }
