@@ -1,11 +1,17 @@
 import { RedisDatabaseWrapper } from '@/data/interfaces/data-sources/redis-wrapper';
 import { createClient, RedisClientType } from 'redis';
 
+const redisUrl = process.env.REDIS_URL;
+
 export class RedisDatabaseWrapperImpl implements RedisDatabaseWrapper {
   private client: RedisClientType;
 
   constructor() {
-    this.client = createClient();
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is not set');
+    }
+
+    this.client = createClient({ url: redisUrl });
     this.client.connect();
 
     this.client.on('error', (err) => {
