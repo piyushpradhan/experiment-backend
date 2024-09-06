@@ -34,8 +34,10 @@ export class SocketServer {
         const channels: Channel[] | null = await this.emitChannels();
         const latestChannel: Channel = (channels || [])[0];
 
-        socket.join(latestChannel.id);
-        await this.emitChannelMessages(latestChannel.id);
+        if (latestChannel) {
+          socket.join(latestChannel.id);
+          await this.emitChannelMessages(latestChannel.id);
+        }
       });
 
       socket.on('joinChannel', async (channelId) => {
