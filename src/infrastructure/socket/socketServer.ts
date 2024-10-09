@@ -1,7 +1,6 @@
 import { Server } from 'socket.io';
-import Message from '@/data/models/message';
 import { Channel } from '@/domain/entities/channel';
-import { MessagesRequest } from '@/domain/entities/message';
+import { LoadMoreMessagesRequest, MessagesRequest, Message } from '@/domain/entities/message';
 import { ChannelRepository } from '@/domain/repositories/channel-repository';
 import { MessageRepository } from '@/domain/repositories/message-repository';
 import type {
@@ -47,6 +46,11 @@ export class SocketServer {
 
       socket.on('requestChannelMessages', async (channelId: string) => {
         await this.emitChannelMessages(channelId);
+      });
+
+      socket.on('loadMoreMessages', async (data: LoadMoreMessagesRequest) => {
+        const messages = await this.loadMoreMessages(data);
+        this.io.emit('moreChannelMessages', { messages, channelId: data.channelId });
       });
 
       socket.on('message', async (data: SocketMessageData) => {
@@ -96,6 +100,11 @@ export class SocketServer {
 
   private async getAllChannelMessages(data: MessagesRequest) {
     const messages = await this.messageRepository.getChannelMessages(data.channelId);
+    return messages;
+  }
+
+  private async loadMoreMessages(data: LoadMoreMessagesRequest) {
+    const messages = await this.messageRepository.loadMoreChannelMessages(data.channelId, data.offset, data.limit);
     return messages;
   }
 

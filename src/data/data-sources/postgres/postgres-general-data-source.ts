@@ -1,9 +1,8 @@
-import { Channel } from "@/domain/entities/channel";
-import Message from "../../models/message";
-import { LoginResponseModel, User } from "@/domain/entities/auth";
-import { Message as MessageRequest } from "@/domain/entities/message";
-import { SQLDatabaseWrapper } from "src/data/interfaces/data-sources/database-wrapper";
-import { IGeneralDataSource } from "src/data/interfaces/data-sources/general-data-source";
+import { Channel } from '@/domain/entities/channel';
+import { LoginResponseModel, User } from '@/domain/entities/auth';
+import { Message } from '@/domain/entities/message';
+import { SQLDatabaseWrapper } from 'src/data/interfaces/data-sources/database-wrapper';
+import { IGeneralDataSource } from 'src/data/interfaces/data-sources/general-data-source';
 
 export class PGDataSource implements IGeneralDataSource {
   private db: SQLDatabaseWrapper;
@@ -46,8 +45,8 @@ export class PGDataSource implements IGeneralDataSource {
         replacements: {
           uid,
           name,
-          email
-        }
+          email,
+        },
       });
       return result.rows.length > 0 ? result.rows[0][0] : null;
     } catch (err) {
@@ -61,8 +60,8 @@ export class PGDataSource implements IGeneralDataSource {
       const query = 'SELECT * FROM users where email = :email;';
       const result = await this.db.query(query, {
         replacements: {
-          email
-        }
+          email,
+        },
       });
 
       return result.rows.length > 0 ? result.rows[0][0] : null;
@@ -76,7 +75,7 @@ export class PGDataSource implements IGeneralDataSource {
     try {
       const query = 'SELECT * FROM users WHERE uid = ?;';
       const result = await this.db.query(query, {
-        replacements: { uid }
+        replacements: { uid },
       });
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
@@ -91,8 +90,8 @@ export class PGDataSource implements IGeneralDataSource {
       const result = await this.db.query(query, {
         replacements: {
           name,
-          email
-        }
+          email,
+        },
       });
       return result.rows.length > 0 ? result.rows[0][0] : null;
     } catch (err) {
@@ -101,13 +100,14 @@ export class PGDataSource implements IGeneralDataSource {
     }
   }
 
-  async sendMessage(message: Omit<MessageRequest, "id">): Promise<void> {
+  async sendMessage(message: Omit<Message, 'id'>): Promise<void> {
     try {
-      const query = 'INSERT INTO messages (sender, channel_id, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
+      const query =
+        'INSERT INTO messages (sender, channel_id, contents, tagged_message) VALUES (:sender, :channelId, :contents, :taggedMessage);';
       await this.db.query(query, {
         replacements: {
-          ...message
-        }
+          ...message,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -120,8 +120,8 @@ export class PGDataSource implements IGeneralDataSource {
       await this.db.query(query, {
         replacements: {
           sender,
-          channelId
-        }
+          channelId,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -130,13 +130,27 @@ export class PGDataSource implements IGeneralDataSource {
 
   async getChannelMessages(channelId: string): Promise<Message[] | null> {
     try {
-      // TODO: Limit to 30 messages
-      const query = 'SELECT * from messages WHERE channel_id = :channelId ORDER BY timestamp ASC;';
+      const query = 'SELECT * from messages WHERE channel_id = :channelId ORDER BY timestamp DESC LIMIT 30;';
       const result = await this.db.query(query, {
-        replacements: { channelId }
+        replacements: { channelId },
       });
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
+      return null;
+    }
+  }
+
+  async loadMoreMessages(channelId: string, offset: number, limit: number = 100): Promise<Message[] | null> {
+    try {
+      const query =
+        'SELECT * from messages WHERE channel_id = :channelId ORDER BY timestamp DESC OFFSET :offset LIMIT :limit';
+      const result = await this.db.query(query, {
+        replacements: { channelId, offset, limit },
+      });
+
+      return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (err) {
+      console.error(err);
       return null;
     }
   }
@@ -157,8 +171,8 @@ export class PGDataSource implements IGeneralDataSource {
       const query = 'INSERT INTO channels (name) VALUES (:name) RETURNING *;';
       const result = await this.db.query(query, {
         replacements: {
-          name
-        }
+          name,
+        },
       });
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
@@ -172,8 +186,8 @@ export class PGDataSource implements IGeneralDataSource {
       const query = 'DELETE FROM channels where id = :channelId';
       await this.db.query(query, {
         replacements: {
-          channelId
-        }
+          channelId,
+        },
       });
     } catch (err) {
       console.error(err);

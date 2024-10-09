@@ -1,8 +1,7 @@
 import { PGDataSource } from '@/data/data-sources/postgres/postgres-general-data-source';
 import { IMessageRepository } from '../interfaces/repositories/message-repository';
-import { Message as CreateMessageRequest } from '@/domain/entities/message';
+import { Message } from '@/domain/entities/message';
 import { Channel } from '@/domain/entities/channel';
-import Message from '@/data/models/message';
 import { RedisDatabaseWrapper } from '@/data/interfaces/data-sources/redis-wrapper';
 
 export class MessageRepository implements IMessageRepository {
@@ -14,7 +13,7 @@ export class MessageRepository implements IMessageRepository {
     this.redisDataSource = redisDataSource;
   }
 
-  async send(message: Omit<CreateMessageRequest, 'id'>): Promise<void> {
+  async send(message: Omit<Message, 'id'>): Promise<void> {
     await this.pgDataSource.sendMessage(message);
 
     // Invalidate the Redis cache for the relevant channel's messages
@@ -22,7 +21,7 @@ export class MessageRepository implements IMessageRepository {
 
     // Update the last message of the channel
     const channelDetailStringified = await this.redisDataSource.hGet('channels', message.channelId);
-    if (channelDetailStringified) {3
+    if (channelDetailStringified) {
       const parsedChannelDetails = JSON.parse(channelDetailStringified) as Channel;
       parsedChannelDetails.last_message = message.contents;
       parsedChannelDetails.updated_at = message.timestamp;
@@ -50,6 +49,11 @@ export class MessageRepository implements IMessageRepository {
       await this.redisDataSource.set(cacheKey, JSON.stringify(messages), { EX: 60 });
     }
 
+    return messages;
+  }
+
+  async loadMoreChannelMessages(channelId: string, offset: number, limit: number): Promise<Message[] | null> {
+    const messages = await this.pgDataSource.loadMoreMessages(channelId, offset, limit);
     return messages;
   }
 

@@ -8,5 +8,10 @@ export interface Message {
 }
 
 export interface MessagesRequest {
-  channelId: string
+  channelId: string;
+}
+
+export interface LoadMoreMessagesRequest extends MessagesRequest {
+  offset: number;
+  limit: number;
 }

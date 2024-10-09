@@ -1,7 +1,6 @@
-import { LoginResponseModel, User } from "@/domain/entities/auth";
-import { Message as MessageRequest } from "@/domain/entities/message";
-import Message from "@/data/models/message";
-import { Channel } from "@/domain/entities/channel";
+import { LoginResponseModel, User } from '@/domain/entities/auth';
+import { Message } from '@/domain/entities/message';
+import { Channel } from '@/domain/entities/channel';
 
 export interface IGeneralDataSource {
   getAllUsers(): Promise<User[] | null>;
@@ -10,8 +9,9 @@ export interface IGeneralDataSource {
   getUserById(uid: string): Promise<LoginResponseModel | null>;
   createUser(name: string, email: string): Promise<User | null>;
 
-  sendMessage(message: MessageRequest): Promise<void>;
+  sendMessage(message: Message): Promise<void>;
   getChannelMessages(channelId: string): Promise<Message[] | null>;
+  loadMoreMessages(channelId: string, offset: number, limit: number): Promise<Message[] | null>;
 
   getAllChannels(): Promise<Channel[] | null>;
   createChannel(name: string): Promise<Channel[] | null>;
