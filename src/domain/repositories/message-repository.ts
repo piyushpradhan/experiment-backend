@@ -60,4 +60,8 @@ export class MessageRepository implements IMessageRepository {
   async deleteMessage(channelId: string, sender: string): Promise<void> {
     await this.pgDataSource.deleteMessage(channelId, sender);
   }
+
+  async getMessageDetails(messageId: string): Promise<Message | null> {
+    return await this.pgDataSource.getMessageDetails(messageId);
+  }
 }

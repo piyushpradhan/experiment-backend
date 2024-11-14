@@ -8,6 +8,7 @@ import type {
   SocketMessageData,
   CreateChannelRequest,
   DeleteChannelRequest,
+  SingleMessageDetailRequest,
 } from '@/infrastructure/socket/types';
 
 export class SocketServer {
@@ -65,6 +66,11 @@ export class SocketServer {
         this.io.to(data.channelId).emit('channelMessages', { messages, channelId: data.channelId });
       });
 
+      socket.on('requestSingleMessage', async (messageId: string) => {
+        const message = await this.getSingleMessage({ messageId });
+        this.io.emit('singleMessage', message);
+      });
+
       socket.on('getChannels', async () => {
         await this.emitChannels();
       });
@@ -118,6 +124,11 @@ export class SocketServer {
 
   private async deleteMessage(data: DeleteSocketRequest) {
     await this.messageRepository.deleteMessage(data.channelId, data.sender);
+  }
+
+  private async getSingleMessage(data: SingleMessageDetailRequest) {
+    const messageDetails = await this.messageRepository.getMessageDetails(data.messageId);
+    return messageDetails;
   }
 
   private async getAllChannels() {

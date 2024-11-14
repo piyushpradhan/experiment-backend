@@ -4,7 +4,7 @@
   "main": "index.ts",
   "license": "ISC",
   "scripts": {
-    "build": "rm -rf ./dist && tsc && tsc-alias",
+    "build": "rm -rf ./dist && tsc",
     "start": "pm2 start ecosystem.config.json --no-daemon",
     "start:build": "tsc --build && pm2 start ecosystem.config.json --no-daemon",
     "dev": "tsc-watch --onSuccess \"node dist/index.js\"",

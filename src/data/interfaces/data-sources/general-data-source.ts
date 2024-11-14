@@ -12,6 +12,7 @@ export interface IGeneralDataSource {
   sendMessage(message: Message): Promise<void>;
   getChannelMessages(channelId: string): Promise<Message[] | null>;
   loadMoreMessages(channelId: string, offset: number, limit: number): Promise<Message[] | null>;
+  getMessageDetails(messageId: string): Promise<Message | null>;
 
   getAllChannels(): Promise<Channel[] | null>;
   createChannel(name: string): Promise<Channel[] | null>;

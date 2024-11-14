@@ -136,6 +136,7 @@ export class PGDataSource implements IGeneralDataSource {
       });
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (err) {
+      console.error(err);
       return null;
     }
   }
@@ -149,6 +150,20 @@ export class PGDataSource implements IGeneralDataSource {
       });
 
       return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getMessageDetails(messageId: string): Promise<Message | null> {
+    try {
+      const query = 'SELECT * from messages WHERE id = :messageId';
+      const result = await this.db.query(query, {
+        replacements: { messageId },
+      });
+
+      return result.rows.length > 0 ? result.rows[0]?.[0] : null;
     } catch (err) {
       console.error(err);
       return null;
