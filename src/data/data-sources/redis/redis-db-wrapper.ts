@@ -1,22 +1,90 @@
 import { RedisDatabaseWrapper } from '@/data/interfaces/data-sources/redis-wrapper';
 import { createClient, RedisClientType } from 'redis';
+import { redisConfig } from './config';
 
 const redisUrl = process.env.REDIS_URL;
 
 export class RedisDatabaseWrapperImpl implements RedisDatabaseWrapper {
   private client: RedisClientType;
+  private isConnected: boolean = false;
 
   constructor() {
     if (!redisUrl) {
       throw new Error('REDIS_URL environment variable is not set');
     }
 
-    this.client = createClient({ url: redisUrl });
-    this.client.connect();
+    this.client = createClient({
+      url: redisConfig.url,
+      socket: {
+        reconnectStrategy: (retries) => {
+          if (retries > redisConfig.retryAttempts) {
+            return new Error('Max reconnection attempts reached');
+          }
 
-    this.client.on('error', (err) => {
-      console.error('Redis error: ', err);
+          return Math.min(retries * redisConfig.retryDelay, 3000);
+        },
+      },
     });
+
+    this.setupEventHandlers();
+    this.client.connect();
+  }
+
+  private setupEventHandlers(): void {
+    this.client.on('error', this.handleError.bind(this));
+    this.client.on('connect', this.handleConnect.bind(this));
+    this.client.on('end', this.handleDisconnect.bind(this));
+  }
+
+  private handleError(err: Error): void {
+    console.error('Redis error: ', err);
+    this.isConnected = true;
+  }
+
+  private handleConnect(): void {
+    console.log('Redis connected');
+    this.isConnected = true;
+  }
+
+  private handleDisconnect(): void {
+    console.log('Redis disconnected');
+    this.isConnected = false;
+  }
+
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T | null> {
+    for (let attempt = 1; attempt <= redisConfig.retryAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (err) {
+        if (attempt === redisConfig.retryAttempts) {
+          console.error(`Redis operation failed after ${attempt}: `, err);
+          await new Promise((resolve) => setTimeout(resolve, redisConfig.retryDelay * attempt));
+        }
+      }
+    }
+    return null;
+  }
+
+  getCacheKey(prefix: keyof typeof redisConfig.keys, identifier: string): string {
+    return `${redisConfig.keys[prefix]}${identifier}`;
+  }
+
+  async setWithTTL(key: string, value: string, ttl?: number): Promise<void> {
+    await this.withRetry(async () => {
+      await this.client.set(key, value, {
+        EX: ttl || redisConfig.ttl.defaultTTL,
+      });
+    });
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      await this.client.ping();
+      return true;
+    } catch (err) {
+      console.error('Redis health check failed:', err);
+      return false;
+    }
   }
 
   async get(key: string): Promise<string | null> {
@@ -97,7 +165,7 @@ export class RedisDatabaseWrapperImpl implements RedisDatabaseWrapper {
       console.error(`Redis HDEL error: ${err}`);
     }
   }
-  async multi(): Promise<any> {
+  async multi(): Promise<unknown> {
     try {
       return this.client.multi();
     } catch (err) {
