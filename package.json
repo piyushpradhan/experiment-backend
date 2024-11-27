@@ -39,7 +39,8 @@
     "socket.io": "^4.7.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "kafkajs": "^2.2.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
