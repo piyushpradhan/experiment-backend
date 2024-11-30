@@ -5,13 +5,11 @@ export const kafkaConfig = {
   topics: {
     messages: 'chat.messages',
     channels: 'chat.channels',
-    notifications: 'chat.notifications',
   },
 
   consumerGroups: {
     messages: 'chat-messages-group',
     channels: 'chat-channels-group',
-    notifications: 'chat-notifications-group',
   },
 
   retry: {

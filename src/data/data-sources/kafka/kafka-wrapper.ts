@@ -1,5 +1,5 @@
 import { KafkaWrapper, KafkaMessage } from '@/data/interfaces/data-sources/kafka-wrapper';
-import { Consumer, Kafka, Producer, TopicMessages } from 'kafkajs';
+import { Consumer, Kafka, Partitioners, Producer, TopicMessages } from 'kafkajs';
 import { kafkaConfig } from './config';
 
 export class KafkaWrapperImpl implements KafkaWrapper {
@@ -9,9 +9,7 @@ export class KafkaWrapperImpl implements KafkaWrapper {
 
   constructor() {
     this.kafka = new Kafka({
-      clientId: kafkaConfig.clientId,
-      brokers: kafkaConfig.brokers,
-      retry: kafkaConfig.retry,
+      brokers: ['localhost:9092'],
     });
 
     this.producer = this.kafka.producer();
