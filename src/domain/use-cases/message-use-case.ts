@@ -1,20 +1,25 @@
-import { Message } from "../entities/message";
-import { IMessageUseCase } from "../interfaces/use-cases/message-use-case";
-import { MessageRepository } from "../repositories/message-repository";
-import { SocketServer } from "@/infrastructure/socket/socketServer";
+import { MessageProtocol, MessageServiceFactory } from '@/infrastructure/messaging/message-service-factory';
+import { IMessageUseCase } from '../interfaces/use-cases/message-use-case';
+import { MessageRepository } from '../repositories/message-repository';
+import { Message } from '@/domain/entities/message';
 
 export class MessageUseCaseImpl implements IMessageUseCase {
   messageRepository: MessageRepository;
-  socketServer: SocketServer;
-  constructor(messageRepository: MessageRepository, server: SocketServer) {
+  messageServiceFactory: MessageServiceFactory;
+
+  constructor(messageRepository: MessageRepository, messageServiceFactory: MessageServiceFactory) {
     this.messageRepository = messageRepository;
-    this.socketServer = server;
+    this.messageServiceFactory = messageServiceFactory;
   }
 
-  async sendMessage(message: Omit<Message, "id">): Promise<void> {
+  async sendMessage(message: Omit<Message, 'id'>, protocol: MessageProtocol = MessageProtocol.SOCKET): Promise<void> {
     try {
-      // Emit socket event
-      this.socketServer.emitMessage(message.channelId, message.sender, message.contents);
+      const messageService = this.messageServiceFactory.getService(protocol);
+      await messageService.sendMessage({
+        channelId: message.channelId,
+        sender: message.sender,
+        contents: message.contents,
+      });
       // Update the database
       this.messageRepository.send(message);
     } catch (err) {

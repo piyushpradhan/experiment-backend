@@ -7,11 +7,11 @@ import { AuthRepositoryImpl } from './domain/repositories/auth-repository';
 import MessageRouter from './presentation/routers/message-router';
 import { MessageUseCaseImpl } from './domain/use-cases/message-use-case';
 import { MessageRepository } from './domain/repositories/message-repository';
-import { SocketServer } from './infrastructure/socket/socketServer';
 import { ChannelRepository } from './domain/repositories/channel-repository';
 import { RedisDatabaseWrapperImpl } from './data/data-sources/redis/redis-db-wrapper';
 import { KafkaWrapperImpl } from './data/data-sources/kafka/kafka-wrapper';
 import { kafkaConfig } from './data/data-sources/kafka/config';
+import { MessageServiceFactory } from './infrastructure/messaging/message-service-factory';
 
 (async () => {
   const httpServer = createServer(server);
@@ -21,16 +21,17 @@ import { kafkaConfig } from './data/data-sources/kafka/config';
   const redis = new RedisDatabaseWrapperImpl();
   const kafka = new KafkaWrapperImpl();
 
+  await kafka.connect();
   await kafka.createTopics([kafkaConfig.topics.messages, kafkaConfig.topics.channels]);
 
   const messageRepository = new MessageRepository(dataSource, redis);
   const channelRepository = new ChannelRepository(dataSource, redis);
 
-  const socketServer = new SocketServer(httpServer, messageRepository, channelRepository);
+  // Initialize the message service factory
+  const messageServiceFactory = new MessageServiceFactory(httpServer, messageRepository, channelRepository, kafka);
 
   const authMiddleware = AuthRouter(new AuthUseCaseImpl(new AuthRepositoryImpl(dataSource)));
-
-  const messageMiddleware = MessageRouter(new MessageUseCaseImpl(messageRepository, socketServer));
+  const messageMiddleware = MessageRouter(new MessageUseCaseImpl(messageRepository, messageServiceFactory));
 
   server.use('/auth', authMiddleware);
   server.use('/message', messageMiddleware);
