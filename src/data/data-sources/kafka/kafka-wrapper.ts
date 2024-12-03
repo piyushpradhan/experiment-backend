@@ -9,10 +9,13 @@ export class KafkaWrapperImpl implements KafkaWrapper {
 
   constructor() {
     this.kafka = new Kafka({
-      brokers: ['localhost:9092'],
+      brokers: kafkaConfig.brokers,
+      retry: kafkaConfig.retry,
     });
 
-    this.producer = this.kafka.producer();
+    this.producer = this.kafka.producer({
+      createPartitioner: Partitioners.LegacyPartitioner,
+    });
     this.consumers = new Map();
   }
 
