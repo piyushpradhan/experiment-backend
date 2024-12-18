@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import type { Request } from '@/types';
-import { MessageProtocol } from '@/infrastructure/messaging/message-service-factory';
+import { MessageProtocol } from "../../infrastructure/messaging/message-service-factory";
 
 export const protocolMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   const protocol = req.headers['x-message-protocol'] as MessageProtocol;
