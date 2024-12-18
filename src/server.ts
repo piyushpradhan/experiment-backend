@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const origins = process.env.CORS_ORIGIN;
-const originsList = (origins ?? "").split(",");
+const originsList = (origins ?? '').split(',');
 
 const app = express();
 app.use(cors({ origin: originsList, credentials: true }));

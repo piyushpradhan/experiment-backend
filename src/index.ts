@@ -11,7 +11,7 @@ import { ChannelRepository } from './domain/repositories/channel-repository';
 import { RedisDatabaseWrapperImpl } from './data/data-sources/redis/redis-db-wrapper';
 import { KafkaWrapperImpl } from './data/data-sources/kafka/kafka-wrapper';
 import { kafkaConfig } from './data/data-sources/kafka/config';
-import { MessageServiceFactory } from './infrastructure/messaging/message-service-factory';
+import { MessageProtocol, MessageServiceFactory } from './infrastructure/messaging/message-service-factory';
 
 (async () => {
   const httpServer = createServer(server);
@@ -31,7 +31,10 @@ import { MessageServiceFactory } from './infrastructure/messaging/message-servic
   const messageServiceFactory = new MessageServiceFactory(httpServer, messageRepository, channelRepository, kafka);
 
   const authMiddleware = AuthRouter(new AuthUseCaseImpl(new AuthRepositoryImpl(dataSource)));
-  const messageMiddleware = MessageRouter(new MessageUseCaseImpl(messageRepository, messageServiceFactory));
+  const messageMiddleware = MessageRouter(
+    new MessageUseCaseImpl(messageRepository, messageServiceFactory),
+    messageServiceFactory.getService(MessageProtocol.KAFKA),
+  );
 
   server.use('/auth', authMiddleware);
   server.use('/message', messageMiddleware);
