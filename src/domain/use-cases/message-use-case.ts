@@ -12,7 +12,18 @@ export class MessageUseCaseImpl implements IMessageUseCase {
     this.messageServiceFactory = messageServiceFactory;
   }
 
-  async sendMessage(message: Omit<Message, 'id'>, protocol: MessageProtocol = MessageProtocol.SOCKET): Promise<void> {
+  async getChannelMessages(channelId: string): Promise<Message[] | null> {
+    try {
+      const messages = this.messageRepository.getChannelMessages(channelId);
+      return messages;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async sendMessage(message: Omit<Message, 'id'>, _protocol: MessageProtocol = MessageProtocol.SOCKET): Promise<void> {
     try {
       const messageService = this.messageServiceFactory.getService(MessageProtocol.KAFKA);
       await messageService.sendMessage({
@@ -23,6 +34,16 @@ export class MessageUseCaseImpl implements IMessageUseCase {
       });
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async loadMoreChannelMessages(channelId: string, offset: number, limit: number) {
+    try {
+      const moreMessages = this.messageRepository.loadMoreChannelMessages(channelId, offset, limit);
+      return moreMessages;
+    } catch (err) {
+      console.error(err);
+      return null;
     }
   }
 }
