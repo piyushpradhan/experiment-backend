@@ -21,7 +21,31 @@ export default function MessageRouter(messageUseCase: IMessageUseCase, messageSe
     }
   });
 
-  router.get('/:channelId', (req, res) => {
+  router.get('/:channelId', async (req: Request, res: Response) => {
+    const channelId = req.params.channelId;
+
+    const messages = await messageUseCase.getChannelMessages(channelId);
+
+    res.status(200).send({ messages, channelId });
+  });
+
+  router.get('/:channelId/more', async (req: Request, res: Response) => {
+    const channelId = req.params.channelId;
+    const { offset, limit } = req.query;
+
+    if (channelId && offset) {
+      const moreMessages = await messageUseCase.loadMoreChannelMessages(
+        channelId,
+        parseInt(offset.toString()),
+        limit ? parseInt(limit.toString()) : 30,
+      );
+      return res.status(200).send({ messages: moreMessages, channelId });
+    }
+
+    return res.status(400).send({ error: 'Please send valid channel ID and offset' });
+  });
+
+  router.get('/updates', async (req: Request, res: Response) => {
     const channelId = req.params.channelId;
 
     if (!(messageService instanceof KafkaMessagingService)) {
@@ -35,6 +59,7 @@ export default function MessageRouter(messageUseCase: IMessageUseCase, messageSe
       Connection: 'keep-alive',
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sendEvent = (eventName: string, data: any) => {
       res.write(`event: ${eventName}\n`);
       res.write(`data: ${JSON.stringify(data)}\n\n`);
@@ -42,11 +67,16 @@ export default function MessageRouter(messageUseCase: IMessageUseCase, messageSe
 
     const eventEmitter = messageService.getEventEmitter();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messageHandler = (data: any) => {
-      console.log('this is being executed: ', data, channelId);
       if (data.channelId === channelId) {
         sendEvent('message', data);
       }
+    };
+
+    const channelMessagesHandler = (data: Message[]) => {
+      console.log('Channel Messages: ', data);
+      sendEvent('channelMessages', data);
     };
 
     const errorHandler = (error: Error) => {
@@ -54,12 +84,16 @@ export default function MessageRouter(messageUseCase: IMessageUseCase, messageSe
       sendEvent('error', { message: 'Internal server error' });
     };
 
+    await messageUseCase.getChannelMessages(channelId);
+
+    eventEmitter.on('channelMessages', channelMessagesHandler);
     eventEmitter.on('newMessage', messageHandler);
     eventEmitter.on('messageDeleted', messageHandler);
     eventEmitter.on('error', errorHandler);
 
     // Handle client disconnect
     req.on('close', () => {
+      eventEmitter.off('channelMessages', channelMessagesHandler);
       eventEmitter.off('newMessage', messageHandler);
       eventEmitter.off('messageDeleted', messageHandler);
       eventEmitter.off('error', errorHandler);

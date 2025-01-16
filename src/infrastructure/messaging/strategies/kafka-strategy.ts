@@ -35,10 +35,8 @@ export class KafkaMessagingService implements MessageService {
         if (message.value) {
           const parsedMessage = JSON.parse(message.value) as SocketMessageData;
 
-          const messages = await this.messageRepository.getChannelMessages(parsedMessage.channelId);
-
           // Send to all clients
-          this.eventEmitter.emit('newMessage', { messages, channelId: parsedMessage.channelId });
+          this.eventEmitter.emit('newMessage', { messages: [parsedMessage], channelId: parsedMessage.channelId });
         }
       });
 
@@ -68,6 +66,16 @@ export class KafkaMessagingService implements MessageService {
           await this.channelReposiory.deleteChannel(channelId);
         }
       });
+
+      // Listen for channel messages
+      await this.kafkaClient.consume(KafkaTopics.CHANNEL_MESSAGES, KafkaConsumerGroups.MESSAGE_EVENTS, async (message) => {
+        console.log('Gets triggered', message);
+        if (message.value) {
+          const { channelId } = JSON.parse(message.value);
+          const messages = await this.messageRepository.getChannelMessages(channelId);
+          this.eventEmitter.emit('channelMessages', { messages });
+        }
+      });
     } catch (err) {
       console.error(err);
     }
@@ -86,11 +94,11 @@ export class KafkaMessagingService implements MessageService {
   }
 
   async getChannelMessages(channelId: string): Promise<void> {
-    const messages = await this.messageRepository.getChannelMessages(channelId);
+    console.log('coming in here');
     await this.kafkaClient.produce(KafkaTopics.CHANNEL_MESSAGES, [
       {
         key: channelId,
-        value: JSON.stringify({ messages, channelId }),
+        value: JSON.stringify({ channelId }),
       },
     ]);
   }

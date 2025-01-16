@@ -3,7 +3,7 @@ export enum KafkaTopics {
   CHANNEL_DELETED = 'chat.channels.deleted',
   MESSAGE_SENT = 'chat.messages.sent',
   MESSAGE_DELETED = 'chat.messages.deleted',
-  CHANNEL_MESSAGES = 'chat.channels.messages',
+  CHANNEL_MESSAGES = 'chat.messages.all',
 }
 
 export enum KafkaConsumerGroups {
