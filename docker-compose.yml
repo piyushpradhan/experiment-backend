@@ -1,5 +1,31 @@
 version: '3'
 services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: showoff
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: postgresql://postgres:postgres@postgres:5432/showoff
+
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.3
     environment:

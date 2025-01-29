@@ -3,11 +3,11 @@
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "plugin.name": "pgoutput",
-    "database.hostname": "postgres",
-    "database.port": "5432",
-    "database.user": "postgres",
-    "database.password": "postgres",
-    "database.dbname": "showoff",
+    "database.hostname": "aws-0-us-east-1.pooler.supabase.com",
+    "database.port": "6543",
+    "database.user": "postgres.ttvuggqwzwygsyoiojea",
+    "database.password": "showoff-postgres",
+    "database.dbname": "postgres",
     "database.server.name": "showoff",
     "table.include.list": "public.*"
   }
