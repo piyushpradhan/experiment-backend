@@ -21,8 +21,12 @@ import { MessageProtocol, MessageServiceFactory } from './infrastructure/messagi
   const redis = new RedisDatabaseWrapperImpl();
   const kafka = new KafkaWrapperImpl();
 
-  await kafka.connect();
-  await kafka.createTopics([kafkaConfig.topics.messages, kafkaConfig.topics.channels]);
+  try {
+    await kafka.connect();
+    await kafka.createTopics([kafkaConfig.topics.messages, kafkaConfig.topics.channels]);
+  } catch (err) {
+    console.error('Something went wrong while connecting to Kafka: ', err);
+  }
 
   const messageRepository = new MessageRepository(dataSource, redis);
   const channelRepository = new ChannelRepository(dataSource, redis);
