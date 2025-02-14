@@ -25,8 +25,6 @@ export class SocketMessagingService implements MessageService {
     });
     this.messageRepository = repository;
     this.channelRepository = channelRepository;
-
-    this.initialize();
   }
 
   initialize(): void {
