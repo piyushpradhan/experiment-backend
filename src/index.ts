@@ -19,11 +19,18 @@ import { MessageProtocol, MessageServiceFactory } from './infrastructure/messagi
   // Initialize data sources - Postgres and Redis
   const dataSource = await connectPSQL();
   const redis = new RedisDatabaseWrapperImpl();
-  const kafka = new KafkaWrapperImpl();
+  let kafka;
+  if (process.env.ENV === "development") {
+    kafka = new KafkaWrapperImpl();
+  }
 
   try {
-    await kafka.connect();
-    await kafka.createTopics([kafkaConfig.topics.messages, kafkaConfig.topics.channels]);
+    if (kafka) {
+      await kafka.connect();
+      await kafka.createTopics([kafkaConfig.topics.messages, kafkaConfig.topics.channels]);
+    }
+
+    console.log("Run it locally to use Kafka. Set ENV to 'development'");
   } catch (err) {
     console.error('Something went wrong while connecting to Kafka: ', err);
   }
