@@ -18,16 +18,20 @@ export class MessageServiceFactory {
     server: any,
     messageRepository: MessageRepository,
     channelRepository: ChannelRepository,
-    kafkaClient: KafkaWrapper,
+    kafkaClient: KafkaWrapper | undefined,
   ) {
     this.services = new Map();
 
     // Initialize services at startup
     const socketService = new SocketMessagingService(server, messageRepository, channelRepository);
-    const kafkaService = new KafkaMessagingService(kafkaClient, messageRepository, channelRepository);
-
     this.services.set(MessageProtocol.SOCKET, socketService);
-    this.services.set(MessageProtocol.KAFKA, kafkaService);
+
+    let kafkaService;
+    if (kafkaClient) {
+      kafkaService = new KafkaMessagingService(kafkaClient, messageRepository, channelRepository);
+      this.services.set(MessageProtocol.KAFKA, kafkaService);
+    }
+
 
     this.services.forEach((service) => service.initialize());
   }
